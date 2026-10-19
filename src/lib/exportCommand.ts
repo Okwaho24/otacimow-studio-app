@@ -48,21 +48,34 @@ export function buildExportCommand(p: ExportParams): string {
     );
   }
 
-  if (p.reverbIRPath && p.reverbMix > 0.005) {
-    const wet = Math.round(p.reverbMix * 100);
-    af.push(`afir=dry=${100 - wet}:wet=${wet}`);
+  const useReverb = !!p.reverbIRPath && p.reverbMix > 0.005;
+  const loudnorm = p.loudnessNormalize ? `loudnorm=I=-14:TP=-1.0:LRA=11` : "";
+
+  let audioFilterArgs: string;
+  let audioMap: string;
+  let reverbInput = "";
+
+  if (useReverb) {
+    const wet = Math.min(1, Math.max(0, p.reverbMix));
+    const post = loudnorm ? `,${loudnorm}` : "";
+    const graph =
+      `[1:a]${["aresample=48000", ...af].join(",")}[dry];` +
+      `[2:a]aresample=48000[ir];` +
+      `[dry][ir]afir=dry=${(1 - wet).toFixed(2)}:wet=${wet.toFixed(2)}${post}[aout]`;
+    reverbInput = `-i "${p.reverbIRPath}"`;
+    audioFilterArgs = `-filter_complex "${graph}"`;
+    audioMap = `-map 0:v:0 -map "[aout]"`;
+  } else {
+    const all = loudnorm ? [...af, loudnorm] : af;
+    audioFilterArgs = all.length ? `-af "${all.join(",")}"` : "";
+    audioMap = `-map 0:v:0 -map 1:a:0`;
   }
-
-  if (p.loudnessNormalize) af.push(`loudnorm=I=-14:TP=-1.0:LRA=11`);
-
-  const reverbInput = p.reverbIRPath && p.reverbMix > 0.005 ? `-i "${p.reverbIRPath}"` : "";
-  const afStr = af.length ? `-af "${af.join(",")}"` : "";
 
   return [
     `-y -i "${p.videoPath}"`, audioInput, reverbInput,
-    `-map 0:v:0 -map 1:a:0`,
-    afStr,
-    `-c:v libx264 -preset medium -b:v 6M -maxrate 8M -bufsize 12M`,
+    audioMap,
+    audioFilterArgs,
+    `-c:v h264_mediacodec -b:v 6M`,
     `-vf "${SCALES[p.aspect]}"`,
     `-r 30 -pix_fmt yuv420p -c:a aac -b:a 256k -ar 48000`,
     `-movflags +faststart -shortest "${p.outPath}"`,
