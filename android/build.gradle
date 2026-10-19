@@ -24,6 +24,6 @@ apply plugin: "com.facebook.react.rootproject"
 // Local FFmpegKit AAR (LGPL, arm64-v8a, MediaCodec). Source: github.com/Okwaho24/ffmpeg-kit-lgpl-build
 allprojects {
     repositories {
-        flatDir { dirs "$rootDir/app/libs" }
+        maven { url "$rootDir/local-maven" }
     }
 }

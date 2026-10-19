@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>com.arthenica</groupId>
+  <artifactId>ffmpeg-kit-min</artifactId>
+  <version>6.0-2</version>
+  <packaging>aar</packaging>
+  <description>Local build of arthenica/ffmpeg-kit v6.0: LGPL, arm64-v8a, MediaCodec. Source: github.com/Okwaho24/ffmpeg-kit-lgpl-build</description>
+  <dependencies>
+    <dependency>
+      <groupId>com.arthenica</groupId>
+      <artifactId>smart-exception-java</artifactId>
+      <version>0.2.1</version>
+      <scope>compile</scope>
+    </dependency>
+  </dependencies>
+</project>
