@@ -6,6 +6,7 @@ buildscript {
         targetSdkVersion = 34
         ndkVersion = "26.1.10909125"
         kotlinVersion = "1.9.22"
+        ffmpegKitPackage = "min"
     }
     repositories {
         google()
@@ -19,3 +20,10 @@ buildscript {
 }
 
 apply plugin: "com.facebook.react.rootproject"
+
+// Local FFmpegKit AAR (LGPL, arm64-v8a, MediaCodec). Source: github.com/Okwaho24/ffmpeg-kit-lgpl-build
+allprojects {
+    repositories {
+        flatDir { dirs "$rootDir/app/libs" }
+    }
+}
