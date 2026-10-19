@@ -1,4 +1,4 @@
-package com.soundreel
+package com.otacimow
 
 import com.facebook.react.ReactActivity
 import com.facebook.react.ReactActivityDelegate
