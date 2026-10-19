@@ -22,8 +22,6 @@ jobs:
           distribution: temurin
           java-version: 17
 
-      - uses: android-actions/setup-android@v3
-
       - name: Install JS dependencies
         run: npm ci
 
