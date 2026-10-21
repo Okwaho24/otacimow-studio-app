@@ -16,7 +16,7 @@ export default function App() {
     <SafeAreaView style={styles.root}>
       <StatusBar barStyle="light-content" backgroundColor={T.bg} />
       <View style={styles.header}>
-        <Text style={styles.brand}>SOUND<Text style={{ color: T.accent }}>REEL</Text></Text>
+        <Text style={styles.brand}>OTACIMOW<Text style={{ color: T.accent }}>™</Text></Text>
         <Text style={styles.tag}>BETA</Text>
       </View>
       {screen === "home" && (
