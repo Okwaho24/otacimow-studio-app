@@ -17,7 +17,7 @@ import kotlin.math.sqrt
  * beat-multiple lags score nearly as high as the true offset. Single-argmax
  * selection locks a whole bar off and still reports high confidence — this was
  * caught failing on rhythmic test material in the Rust port. Raw correlation is
- * phase-sensitive and separates them. Most SoundReel content is metronomic, so
+ * phase-sensitive and separates them. Most Otâcimow content is metronomic, so
  * this is the difference between the signature feature working and quietly lying.
  *
  * Returns offsetSec such that: studioTime = videoTime + offsetSec.
