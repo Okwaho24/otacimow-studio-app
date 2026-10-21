@@ -1,0 +1,46 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="1024"
+    android:viewportHeight="1024">
+    
+    <!-- Outer Flame Outer Curve -->
+    <path
+        android:pathData="M512,192C512,192 320,384 320,576C320,682.04 405.96,768 512,768C618.04,768 704,682.04 704,576C704,384 512,192 512,192Z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:startX="512"
+                android:startY="192"
+                android:endX="512"
+                android:endY="768"
+                android:type="linear">
+                <item android:color="#FFEFBF04" android:offset="0.0"/>
+                <item android:color="#FFB78828" android:offset="1.0"/>
+            </gradient>
+        </aapt:attr>
+    </path>
+    
+    <!-- Inner Flame -->
+    <path
+        android:pathData="M512,320C512,320 400,448 400,576C400,637.85 450.15,688 512,688C573.85,688 624,637.85 624,576C624,448 512,320 512,320Z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:startX="512"
+                android:startY="320"
+                android:endX="512"
+                android:endY="688"
+                android:type="linear">
+                <item android:color="#FFE5E4E2" android:offset="0.0"/>
+                <item android:color="#FFEFBF04" android:offset="1.0"/>
+            </gradient>
+        </aapt:attr>
+    </path>
+
+    <!-- Soundwave Cutouts -->
+    <path android:pathData="M448,528h16v96h-16z" android:fillColor="#0A0A0A"/>
+    <path android:pathData="M480,480h16v192h-16z" android:fillColor="#0A0A0A"/>
+    <path android:pathData="M512,448h16v256h-16z" android:fillColor="#0A0A0A"/>
+    <path android:pathData="M544,480h16v192h-16z" android:fillColor="#0A0A0A"/>
+    <path android:pathData="M576,528h16v96h-16z" android:fillColor="#0A0A0A"/>
+</vector>
