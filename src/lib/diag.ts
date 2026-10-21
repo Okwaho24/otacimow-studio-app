@@ -15,8 +15,8 @@ export async function exportDiagnostics(): Promise<string> {
 export async function exportAndShareDiagnostics(): Promise<void> {
   const path = await exportDiagnostics();
   await Share.share({
-    title: "SoundReel beta diagnostics",
-    message: `SoundReel diagnostic archive (generated locally, nothing auto-sent): file://${path}`,
+    title: "Otacimow beta diagnostics",
+    message: `Otacimow diagnostic archive (generated locally, nothing auto-sent): file://${path}`,
     url: `file://${path}`,
   });
 }

@@ -35,7 +35,7 @@ class DiagModule(reactContext: ReactApplicationContext) :
         val stamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date())
         val outDir = ctx.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS)
           ?: ctx.filesDir
-        val zipFile = File(outDir, "soundreel_beta_diag_$stamp.zip")
+        val zipFile = File(outDir, "otacimow_beta_diag_$stamp.zip")
 
         ZipOutputStream(FileOutputStream(zipFile)).use { zip ->
           putEntry(zip, "system_specs.txt", systemSpecs())
@@ -58,7 +58,7 @@ class DiagModule(reactContext: ReactApplicationContext) :
   }
 
   private fun systemSpecs(): String = buildString {
-    appendLine("SoundReel beta diagnostics — system specs")
+    appendLine("Otacimow beta diagnostics — system specs")
     appendLine("timestamp: ${Date()}")
     appendLine("device: ${Build.MANUFACTURER} ${Build.MODEL} (${Build.DEVICE})")
     appendLine("android: ${Build.VERSION.RELEASE} (SDK ${Build.VERSION.SDK_INT})")
@@ -70,7 +70,7 @@ class DiagModule(reactContext: ReactApplicationContext) :
   }
 
   private fun audioConfig(ctx: Context): String = buildString {
-    appendLine("SoundReel beta diagnostics — audio configuration")
+    appendLine("Otacimow beta diagnostics — audio configuration")
     val am = ctx.getSystemService(Context.AUDIO_SERVICE) as AudioManager
     appendLine("native sample rate: ${am.getProperty(AudioManager.PROPERTY_OUTPUT_SAMPLE_RATE)}")
     appendLine("native frames/buffer: ${am.getProperty(AudioManager.PROPERTY_OUTPUT_FRAMES_PER_BUFFER)}")
@@ -91,10 +91,10 @@ class DiagModule(reactContext: ReactApplicationContext) :
   }
 
   private fun readme(): String = """
-    SoundReel beta diagnostic archive.
+    Otacimow beta diagnostic archive.
     Generated locally on your device. Nothing in this archive was transmitted
-    anywhere — SoundReel performs no telemetry, analytics, or background
-    data collection. Review the contents, then send this zip to the SoundReel
+    anywhere — Otacimow performs no telemetry, analytics, or background
+    data collection. Review the contents, then send this zip to the Otacimow
     team through whatever channel you prefer.
   """.trimIndent()
 }
