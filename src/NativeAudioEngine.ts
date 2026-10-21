@@ -1,5 +1,5 @@
 /**
- * TypeScript interface to the SoundReel native audio modules.
+ * TypeScript interface to the Otâcimow native audio modules.
  * Parameter ranges mirror the validated web prototype exactly.
  */
 import { NativeModules } from "react-native";
