@@ -10,17 +10,20 @@ import { ensureIRs } from "../lib/genIR";
 import { waveformPeaks } from "../lib/waveform";
 import WaveformView from "../components/WaveformView";
 import { Chip, Fader } from "../components/RackControls";
+import { SealApi, SHARE_TARGETS, ExportResult } from "../lib/seal";
+import { sealErrorText, shortHash } from "../lib/sealText";
 import { T } from "../lib/theme";
 
 interface Props {
   mediaPath: string;
   hasVideo: boolean;
   onNewProject: () => void;
+  onOpenLicense: () => void;
 }
 
 type Rack = "sync" | "eq" | "reverb" | "comp" | "gain";
 
-export default function EditorScreen({ mediaPath, hasVideo, onNewProject }: Props) {
+export default function EditorScreen({ mediaPath, hasVideo, onNewProject, onOpenLicense }: Props) {
   const videoRef = useRef<VideoRef>(null);
   const [playing, setPlaying] = useState(false);
   const [pos, setPos] = useState(0);
@@ -46,7 +49,10 @@ export default function EditorScreen({ mediaPath, hasVideo, onNewProject }: Prop
   const [bypass, setBypass] = useState(false);
 
   const [exporting, setExporting] = useState(false);
-  const [exportDone, setExportDone] = useState<string | null>(null);
+  const [exportError, setExportError] = useState<string | null>(null);
+  const [needsLicense, setNeedsLicense] = useState(false);
+  const [sealed, setSealed] = useState<ExportResult | null>(null);
+  const [shareMsg, setShareMsg] = useState<string | null>(null);
 
   // ---- init: load into engine, decode waveform, measure peak ----
   useEffect(() => {
@@ -126,15 +132,31 @@ export default function EditorScreen({ mediaPath, hasVideo, onNewProject }: Prop
     }
   };
 
-  // ---- export ----
+  // ---- export: render to cache, then seal + verify + save through the native Seal module ----
   const doExport = async () => {
     setExporting(true);
-    setExportDone(null);
+    setExportError(null);
+    setNeedsLicense(false);
+    setSealed(null);
+    setShareMsg(null);
+    let out: string | null = null;
     try {
+      const lic = await SealApi.status();
+      if (lic.state !== "valid" || !lic.accepted) {
+        setNeedsLicense(true);
+        setExportError(
+          lic.state === "valid"
+            ? "Accept the license terms to export."
+            : lic.state === "no_key"
+              ? "This build has no license key, so it cannot export."
+              : "Activate a valid license to export.");
+        return;
+      }
       const irs = await ensureIRs();
       const rv = REVERB_PRESETS[rvName];
       const norm = normalize && peak > 0 ? 20 * Math.log10(0.891 / peak) : 0;
-      const out = `${RNFS.DownloadDirectoryPath}/otacimow_${Date.now()}.mp4`;
+      const name = `otacimow_${Date.now()}.mp4`;
+      out = `${RNFS.CachesDirectoryPath}/${name}`;
       const cmd = buildExportCommand({
         videoPath: mediaPath,
         audioPath: source === "studio" && studioPath ? studioPath : mediaPath,
@@ -151,11 +173,28 @@ export default function EditorScreen({ mediaPath, hasVideo, onNewProject }: Prop
       });
       const session = await FFmpegKit.execute(cmd);
       const rc = await session.getReturnCode();
-      setExportDone(ReturnCode.isSuccess(rc) ? out : "FAILED — check logs");
+      if (!ReturnCode.isSuccess(rc)) {
+        setExportError("Export failed in FFmpeg. Nothing was saved.");
+        return;
+      }
+      setSealed(await SealApi.finalizeExport(out, name));
     } catch (e) {
-      setExportDone("FAILED — " + String(e));
+      setExportError(sealErrorText(e));
+    } finally {
+      // finalizeExport deletes the cache copy on success; remove it on any failure path.
+      if (out) { try { if (await RNFS.exists(out)) await RNFS.unlink(out); } catch {} }
+      setExporting(false);
     }
-    setExporting(false);
+  };
+
+  const shareTo = async (pkg: string | null, label: string) => {
+    if (!sealed) return;
+    setShareMsg(null);
+    try {
+      await SealApi.share(sealed.uri, pkg, sealed.sha256);
+    } catch (e) {
+      setShareMsg(`${label}: ${sealErrorText(e)}`);
+    }
   };
 
   const nudge = (ms: number) => setSyncOffset(o => Math.round((o + ms / 1000) * 10000) / 10000);
@@ -277,7 +316,32 @@ export default function EditorScreen({ mediaPath, hasVideo, onNewProject }: Prop
         ) : (
           <Text style={styles.status}>● EXPORTING VIA FFMPEG…</Text>
         )}
-        {exportDone && <Text style={[styles.status, { marginTop: 8 }]}>{exportDone}</Text>}
+        {exportError && <Text style={[styles.status, { marginTop: 8, color: T.rec }]}>{exportError}</Text>}
+        {needsLicense && (
+          <View style={{ marginTop: 8, flexDirection: "row" }}>
+            <Btn label="Open license" onPress={onOpenLicense} />
+          </View>
+        )}
+        {sealed && (
+          <View style={styles.sealCard}>
+            <Text style={[styles.status, { color: T.ok, marginTop: 0, textAlign: "left" }]}>✓ SEALED AND SAVED</Text>
+            <Text style={styles.sealLine}>{sealed.location}</Text>
+            <Text style={styles.sealLine}>SHA-256  {shortHash(sealed.sha256)}</Text>
+            <Text style={styles.sealLine}>LICENSE ID  {sealed.tid}</Text>
+            <Text style={styles.sealLine}>SEALED  {sealed.ts}</Text>
+            <Text style={styles.sealNote}>
+              Keep this saved file as your master. Platforms re-encode uploads and remove the seal from the posted copy.
+            </Text>
+            <Text style={[styles.sealLine, { color: T.accent, marginTop: 12, marginBottom: 6 }]}>SHARE</Text>
+            <View style={styles.row}>
+              {SHARE_TARGETS.map(t => (
+                <Chip key={t.pkg} label={t.label} onPress={() => shareTo(t.pkg, t.label)} />
+              ))}
+              <Chip label="More…" onPress={() => shareTo(null, "Share")} />
+            </View>
+            {shareMsg && <Text style={[styles.status, { color: T.rec, textAlign: "left" }]}>{shareMsg}</Text>}
+          </View>
+        )}
       </View>
     </ScrollView>
   );
@@ -312,4 +376,7 @@ const styles = StyleSheet.create({
   },
   btnPrimary: { backgroundColor: T.accent, borderColor: T.accent },
   btnText: { color: T.text, fontSize: 11, letterSpacing: 1.4, fontFamily: "monospace" },
+  sealCard: { marginTop: 12, padding: 14, backgroundColor: T.panel, borderWidth: 1, borderColor: T.line, borderRadius: 6 },
+  sealLine: { color: T.text, fontSize: 11, fontFamily: "monospace", marginTop: 4 },
+  sealNote: { color: T.dim, fontSize: 11, lineHeight: 16, marginTop: 10 },
 });

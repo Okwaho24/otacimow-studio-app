@@ -3,14 +3,18 @@ import { SafeAreaView, StatusBar, View, Text, StyleSheet } from "react-native";
 import HomeScreen from "./screens/HomeScreen";
 import RecordScreen from "./screens/RecordScreen";
 import EditorScreen from "./screens/EditorScreen";
+import LicenseScreen from "./screens/LicenseScreen";
+import VerifyScreen from "./screens/VerifyScreen";
 import { T } from "./lib/theme";
 
-type Screen = "home" | "record" | "edit";
+type Screen = "home" | "record" | "edit" | "license" | "verify";
 
 export default function App() {
   const [screen, setScreen] = useState<Screen>("home");
   const [mediaPath, setMediaPath] = useState<string | null>(null);
   const [hasVideo, setHasVideo] = useState(true);
+  // Where the license screen returns to (home, or the editor so the project is not lost).
+  const [licenseReturn, setLicenseReturn] = useState<Screen>("home");
 
   return (
     <SafeAreaView style={styles.root}>
@@ -22,6 +26,8 @@ export default function App() {
       {screen === "home" && (
         <HomeScreen
           onRecord={() => setScreen("record")}
+          onLicense={() => { setLicenseReturn("home"); setScreen("license"); }}
+          onVerify={() => setScreen("verify")}
           onImported={(p, v) => { setMediaPath(p); setHasVideo(v); setScreen("edit"); }} />
       )}
       {screen === "record" && (
@@ -29,10 +35,15 @@ export default function App() {
           onBack={() => setScreen("home")}
           onRecorded={p => { setMediaPath(p); setHasVideo(true); setScreen("edit"); }} />
       )}
-      {screen === "edit" && mediaPath && (
-        <EditorScreen mediaPath={mediaPath} hasVideo={hasVideo}
-          onNewProject={() => { setMediaPath(null); setScreen("home"); }} />
+      {mediaPath && (
+        <View style={{ flex: 1, display: screen === "edit" ? "flex" : "none" }}>
+          <EditorScreen mediaPath={mediaPath} hasVideo={hasVideo}
+            onOpenLicense={() => { setLicenseReturn("edit"); setScreen("license"); }}
+            onNewProject={() => { setMediaPath(null); setScreen("home"); }} />
+        </View>
       )}
+      {screen === "license" && <LicenseScreen onBack={() => setScreen(licenseReturn === "edit" && mediaPath ? "edit" : "home")} />}
+      {screen === "verify" && <VerifyScreen onBack={() => setScreen("home")} />}
     </SafeAreaView>
   );
 }

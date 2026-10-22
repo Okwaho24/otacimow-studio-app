@@ -110,6 +110,8 @@ dependencies {
     implementation("com.facebook.react:react-android")
     implementation "com.arthenica:smart-exception-java:0.2.1"
 
+    testImplementation "junit:junit:4.13.2"
+
     if (hermesEnabled.toBoolean()) {
         implementation("com.facebook.react:hermes-android")
     } else {

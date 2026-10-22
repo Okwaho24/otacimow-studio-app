@@ -6,7 +6,40 @@ on:
     branches: [main]
 
 jobs:
+  verify:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Install JS dependencies
+        run: npm ci
+
+      - name: Type-check
+        run: npx tsc --noEmit
+
+      - name: JS tests
+        run: npx jest --ci
+
+      - name: Seal and license tool self-test
+        run: node tools/selftest.mjs
+
+      - name: Kotlin seal and license unit tests
+        working-directory: android
+        run: ./gradlew :app:testDebugUnitTest --stacktrace
+
   build:
+    needs: verify
     runs-on: ubuntu-24.04
     timeout-minutes: 45
     steps:
@@ -24,6 +57,9 @@ jobs:
 
       - name: Install JS dependencies
         run: npm ci
+
+      - name: Require license public key
+        run: test -s android/app/src/main/assets/license_pub.pem
 
       - name: Build debug APK
         working-directory: android

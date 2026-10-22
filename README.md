@@ -1,79 +1,62 @@
-This is a new [**React Native**](https://reactnative.dev) project, bootstrapped using [`@react-native-community/cli`](https://github.com/react-native-community/cli).
+# Otâcimow™
 
-# Getting Started
+Record or import a performance video, lock a studio track to it, process the audio (EQ, compressor, reverb,
+gain) and export a vertical clip. Every export is sealed with the buyer's license token so the original file can
+be verified later. Android only. Sold by APK download. Not distributed through Google Play.
 
->**Note**: Make sure you have completed the [React Native - Environment Setup](https://reactnative.dev/docs/environment-setup) instructions till "Creating a new application" step, before proceeding.
+© Archer Chain Analytics. Otâcimow and AcerbE are trademarks of Archer Chain Analytics.
 
-## Step 1: Start the Metro Server
+## Status
 
-First, you will need to start **Metro**, the JavaScript _bundler_ that ships _with_ React Native.
+| Area | Status |
+|---|---|
+| Record, import, studio sync ("Waveform Lock"), EQ / comp / reverb / gain, FFmpeg export | Implemented. Device smoke test PENDING. |
+| License token (signed, offline check) | Implemented. Unit tested (JVM + Node, byte-compatible). |
+| MP4 seal on export, verify screen, recent exports | Implemented. Seal core unit tested. Android glue (`SealModule`) compiles only in CI and is NOT yet tested on a device. |
+| Save to `Movies/Otacimow` via MediaStore | Implemented, UNTESTED on device. |
+| One-tap share to Instagram / TikTok / Facebook / X / system sheet | Implemented, UNTESTED on device. User taps Post in the target app. |
+| In-app connectors (post directly from Otâcimow) | ROADMAP. Needs Meta and TikTok app approval. X API is paid. |
+| Hash-only registry and public verify page | ROADMAP. Needs RaPaX endpoint. |
+| RaPaX `license` product type (token issued at purchase) | NOT IMPLEMENTED. Tokens are issued by hand with `tools/otacimow-license.mjs`. |
+| Audio-domain watermark that survives re-encoding | ROADMAP (research). Not claimed anywhere. |
+| Release signing key | BLOCKED on the operator. Release builds are still signed with the debug key. |
+| Terms of the license | DRAFT. AI-generated. Counsel review required before sale. |
 
-To start Metro, run the following command from the _root_ of your React Native project:
+## What the seal proves, and what it does not
 
-```bash
-# using npm
-npm start
+See `docs/SEAL_SPEC.md`. In one paragraph: the seal proves that the bytes of an exported MP4 are unchanged since
+export and that it carries a license token signed by Archer Chain Analytics. It does not survive re-encoding
+(social platforms, trimming, transcoding), so a posted copy has no seal. It does not by itself prove who made the
+video or when; for that you need a timestamped registry entry (ROADMAP).
 
-# OR using Yarn
-yarn start
-```
+## Build
 
-## Step 2: Start your Application
+Requirements: Node 20, JDK 17, Android SDK. CI does all of this on every push to `main` and on manual dispatch.
 
-Let Metro Bundler run in its _own_ terminal. Open a _new_ terminal from the _root_ of your React Native project. Run the following command to start your _Android_ or _iOS_ app:
+    npm ci
+    npx tsc --noEmit
+    npx jest
+    node tools/selftest.mjs
+    cd android && ./gradlew :app:testDebugUnitTest assembleDebug
 
-### For Android
+The build fails if `android/app/src/main/assets/license_pub.pem` is missing. See `docs/RUNBOOK.md`.
 
-```bash
-# using npm
-npm run android
+## Operate and sell
 
-# OR using Yarn
-yarn android
-```
+`docs/RUNBOOK.md` covers key generation, issuing licenses, activating on a phone, verifying a file, rotating the
+key, and the release checklist.
 
-### For iOS
+## Layout
 
-```bash
-# using npm
-npm run ios
+    src/                       React Native UI (screens, lib/seal.ts wrapper)
+    android/app/src/main/java/com/otacimow/audio   native audio engine, sync, waveform
+    android/app/src/main/java/com/otacimow/seal    License.kt, Mp4Seal.kt, SealModule.kt
+    android/app/src/test/                          JVM tests and test vectors
+    tools/                                         operator CLI, reference implementation, self-test
+    docs/                                          seal spec, runbook
 
-# OR using Yarn
-yarn ios
-```
+## Third-party software
 
-If everything is set up _correctly_, you should see your new app running in your _Android Emulator_ or _iOS Simulator_ shortly provided you have set up your emulator/simulator correctly.
-
-This is one way to run your app — you can also run it directly from within Android Studio and Xcode respectively.
-
-## Step 3: Modifying your App
-
-Now that you have successfully run the app, let's modify it.
-
-1. Open `App.tsx` in your text editor of choice and edit some lines.
-2. For **Android**: Press the <kbd>R</kbd> key twice or select **"Reload"** from the **Developer Menu** (<kbd>Ctrl</kbd> + <kbd>M</kbd> (on Window and Linux) or <kbd>Cmd ⌘</kbd> + <kbd>M</kbd> (on macOS)) to see your changes!
-
-   For **iOS**: Hit <kbd>Cmd ⌘</kbd> + <kbd>R</kbd> in your iOS Simulator to reload the app and see your changes!
-
-## Congratulations! :tada:
-
-You've successfully run and modified your React Native App. :partying_face:
-
-### Now what?
-
-- If you want to add this new React Native code to an existing application, check out the [Integration guide](https://reactnative.dev/docs/integration-with-existing-apps).
-- If you're curious to learn more about React Native, check out the [Introduction to React Native](https://reactnative.dev/docs/getting-started).
-
-# Troubleshooting
-
-If you can't get this to work, see the [Troubleshooting](https://reactnative.dev/docs/troubleshooting) page.
-
-# Learn More
-
-To learn more about React Native, take a look at the following resources:
-
-- [React Native Website](https://reactnative.dev) - learn more about React Native.
-- [Getting Started](https://reactnative.dev/docs/environment-setup) - an **overview** of React Native and how setup your environment.
-- [Learn the Basics](https://reactnative.dev/docs/getting-started) - a **guided tour** of the React Native **basics**.
-- [Blog](https://reactnative.dev/blog) - read the latest official React Native **Blog** posts.
-- [`@facebook/react-native`](https://github.com/facebook/react-native) - the Open Source; GitHub **repository** for React Native.
+FFmpeg (via FFmpegKit) is used under the LGPL. See `THIRD_PARTY_NOTICES.md`. Distribution obligations for the
+bundled FFmpegKit build (source offer and in-app notice) are OPEN: confirm the provenance of the local AAR before
+selling.
