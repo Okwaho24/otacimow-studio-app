@@ -10,7 +10,7 @@ import kotlin.math.min
 import kotlin.math.pow
 
 /**
- * SoundReel native audio engine — Android (API 28+).
+ * Otâcimow native audio engine — Android (API 28+).
  *
  * Live preview chain (per active player's audio session):
  *   MediaPlayer -> DynamicsProcessing (3-band pre-EQ + single-band compressor + input/post gain)

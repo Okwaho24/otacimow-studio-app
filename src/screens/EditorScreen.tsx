@@ -134,7 +134,7 @@ export default function EditorScreen({ mediaPath, hasVideo, onNewProject }: Prop
       const irs = await ensureIRs();
       const rv = REVERB_PRESETS[rvName];
       const norm = normalize && peak > 0 ? 20 * Math.log10(0.891 / peak) : 0;
-      const out = `${RNFS.DownloadDirectoryPath}/soundreel_${Date.now()}.mp4`;
+      const out = `${RNFS.DownloadDirectoryPath}/otacimow_${Date.now()}.mp4`;
       const cmd = buildExportCommand({
         videoPath: mediaPath,
         audioPath: source === "studio" && studioPath ? studioPath : mediaPath,
